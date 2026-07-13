@@ -346,61 +346,115 @@
             margin-top: 4px;
         }
 
-        /* 添加食物 */
-        .add-row {
+        /* 食物 chips */
+        .category-group {
+            margin-bottom: 16px;
+        }
+
+        .category-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .category-header {
             display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed var(--border);
         }
 
-        .add-row input, .add-row select {
-            padding: 10px 12px;
-            border: 1.5px solid var(--border);
-            border-radius: 12px;
+        .category-name {
             font-size: 14px;
-            font-family: inherit;
-            outline: none;
-            background: var(--bg);
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .add-row input:focus, .add-row select:focus {
+        .category-count {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-weight: 400;
+        }
+
+        .category-add-btn {
+            background: none;
+            border: 1.5px dashed var(--border);
+            color: var(--primary);
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .category-add-btn:active {
+            background: var(--primary-light);
             border-color: var(--primary);
         }
 
-        .add-row input[type="text"] {
+        /* 内联添加行 */
+        .inline-add-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            padding: 10px;
+            background: var(--primary-light);
+            border-radius: 12px;
+            animation: chipIn 0.2s ease;
+        }
+
+        .inline-add-row input {
             flex: 1;
+            padding: 8px 10px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            background: var(--card-bg);
         }
 
-        .add-row input[type="number"] {
-            width: 80px;
+        .inline-add-row input:focus {
+            border-color: var(--primary);
         }
 
-        .add-row select {
-            min-width: 70px;
+        .inline-add-row input[type="number"] {
+            width: 68px;
+            flex: none;
         }
 
-        .add-btn-small {
-            background: var(--success);
+        .inline-add-confirm {
+            background: var(--primary);
             color: white;
             border: none;
-            padding: 10px 16px;
-            border-radius: 12px;
-            font-size: 14px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 13px;
             font-weight: 700;
             cursor: pointer;
             font-family: inherit;
             white-space: nowrap;
         }
 
-        .add-btn-small:active {
-            transform: scale(0.95);
+        .inline-add-confirm:active {
+            opacity: 0.85;
         }
 
-        /* 食物列表 */
-        .food-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
+        .inline-add-cancel {
+            background: none;
+            border: 1.5px solid var(--border);
+            color: var(--text-tertiary);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
         }
 
         .food-chip {
@@ -785,25 +839,10 @@
                     </div>
                 </div>
 
-                <!-- 添加食物 -->
+                <!-- 食物列表（按分类分组） -->
                 <div class="card">
-                    <div class="card-title"><span class="card-title-icon">➕</span> 添加食物</div>
-                    <div class="add-row">
-                        <input type="text" id="newFoodInput" placeholder="食物名称" maxlength="20">
-                        <input type="number" id="newFoodCalorie" placeholder="kcal" min="0" max="3000">
-                        <select id="newFoodCategory">
-                            <option value="炒菜">炒菜</option>
-                            <option value="烧腊">烧腊</option>
-                            <option value="猪脚饭">猪脚饭</option>
-                            <option value="粉面">粉面</option>
-                            <option value="粥">粥</option>
-                            <option value="快餐">快餐</option>
-                            <option value="小吃">小吃</option>
-                            <option value="火锅">火锅</option>
-                        </select>
-                        <button class="add-btn-small" id="addBtn">添加</button>
-                    </div>
-                    <div class="food-grid" id="foodList"></div>
+                    <div class="card-title"><span class="card-title-icon">🍽️</span> 食物列表</div>
+                    <div id="foodList"></div>
                 </div>
 
                 <!-- 历史记录 -->
@@ -933,10 +972,6 @@
         const drawCalorie = document.getElementById('drawCalorie');
         const drawBtn = document.getElementById('drawBtn');
         const foodList = document.getElementById('foodList');
-        const newFoodInput = document.getElementById('newFoodInput');
-        const newFoodCalorie = document.getElementById('newFoodCalorie');
-        const newFoodCategory = document.getElementById('newFoodCategory');
-        const addBtn = document.getElementById('addBtn');
         const historyList = document.getElementById('historyList');
         const clearHistory = document.getElementById('clearHistory');
         const modalOverlay = document.getElementById('modalOverlay');
@@ -1093,9 +1128,33 @@
         }
 
         // ===== 食物列表 =====
+        // ===== 食物列表（按分类分组渲染） =====
+        const categoryEmojis = {
+            '炒菜': '🍳', '烧腊': '🦆', '猪脚饭': '🍖', '粉面': '🍜',
+            '粥': '🥣', '快餐': '🍔', '小吃': '🥟', '火锅': '🍲'
+        };
+
         function renderFoodList() {
             foodList.innerHTML = '';
             Object.entries(foods).forEach(([category, items]) => {
+                const group = document.createElement('div');
+                group.className = 'category-group';
+                group.id = 'catGroup_' + category;
+
+                const emoji = categoryEmojis[category] || '🍱';
+                const header = document.createElement('div');
+                header.className = 'category-header';
+                header.innerHTML = `
+                    <div class="category-name">${emoji} ${category} <span class="category-count">(${items.length})</span></div>
+                    <button class="category-add-btn" onclick="showInlineAdd('${category}')">+ 添加</button>
+                `;
+                group.appendChild(header);
+
+                const chipGrid = document.createElement('div');
+                chipGrid.className = 'food-grid';
+                chipGrid.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;';
+                chipGrid.id = 'chipGrid_' + category;
+
                 items.forEach(f => {
                     const info = typeof f === 'object' ? f : { name: f, cal: 0 };
                     const cl = getCalorieLevel(info.cal);
@@ -1106,10 +1165,61 @@
                         <span class="cal-badge ${cl.level}">${info.cal}</span>
                         <button class="remove" onclick="removeFood('${category}', '${info.name}')">&times;</button>
                     `;
-                    foodList.appendChild(chip);
+                    chipGrid.appendChild(chip);
                 });
+
+                group.appendChild(chipGrid);
+                foodList.appendChild(group);
             });
         }
+
+        // 显示内联添加行
+        window.showInlineAdd = function(category) {
+            // 如果已有添加行就先移除
+            const existing = document.getElementById('inlineAdd_' + category);
+            if (existing) { existing.remove(); return; }
+
+            const group = document.getElementById('catGroup_' + category);
+            const addRow = document.createElement('div');
+            addRow.className = 'inline-add-row';
+            addRow.id = 'inlineAdd_' + category;
+            addRow.innerHTML = `
+                <input type="text" placeholder="食物名称" maxlength="20" id="inlineName_${category}">
+                <input type="number" placeholder="kcal" min="0" max="3000" id="inlineCal_${category}">
+                <button class="inline-add-confirm" onclick="confirmInlineAdd('${category}')">确定</button>
+                <button class="inline-add-cancel" onclick="cancelInlineAdd('${category}')">取消</button>
+            `;
+            group.appendChild(addRow);
+
+            // 自动聚焦
+            setTimeout(() => {
+                document.getElementById('inlineName_' + category).focus();
+            }, 100);
+        };
+
+        window.confirmInlineAdd = function(category) {
+            const nameInput = document.getElementById('inlineName_' + category);
+            const calInput = document.getElementById('inlineCal_' + category);
+            const name = nameInput.value.trim();
+            const cal = parseInt(calInput.value) || 0;
+
+            if (!name) { showToast('请输入食物名称'); nameInput.focus(); return; }
+
+            if (!foods[category]) foods[category] = [];
+            if (foods[category].some(f => (typeof f === 'object' ? f.name : f) === name)) {
+                showToast('该食物已存在'); return;
+            }
+
+            foods[category].push({ name, cal });
+            renderFoodList();
+            updateStats();
+            showToast('添加成功');
+        };
+
+        window.cancelInlineAdd = function(category) {
+            const el = document.getElementById('inlineAdd_' + category);
+            if (el) el.remove();
+        };
 
         // ===== 历史 =====
         function renderHistory() {
@@ -1139,26 +1249,6 @@
             });
         }
 
-        // ===== 添加食物 =====
-        function addFood() {
-            const name = newFoodInput.value.trim();
-            const cal = parseInt(newFoodCalorie.value) || 0;
-            const category = newFoodCategory.value;
-            if (!name) { showToast('请输入食物名称'); return; }
-
-            if (!foods[category]) foods[category] = [];
-            if (foods[category].some(f => (typeof f === 'object' ? f.name : f) === name)) {
-                showToast('该食物已存在'); return;
-            }
-
-            foods[category].push({ name, cal });
-            newFoodInput.value = '';
-            newFoodCalorie.value = '';
-            renderFoodList();
-            updateStats();
-            showToast('添加成功');
-        }
-
         // ===== 删除食物 =====
         window.removeFood = function(category, foodName) {
             foods[category] = foods[category].filter(f => (typeof f === 'object' ? f.name : f) !== foodName);
@@ -1178,8 +1268,6 @@
 
         // ===== 事件 =====
         drawBtn.addEventListener('click', draw);
-        addBtn.addEventListener('click', addFood);
-        newFoodInput.addEventListener('keypress', e => { if (e.key === 'Enter') addFood(); });
         clearHistory.addEventListener('click', clearAllHistory);
         modalClose.addEventListener('click', () => modalOverlay.classList.remove('show'));
         modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) modalOverlay.classList.remove('show'); });
