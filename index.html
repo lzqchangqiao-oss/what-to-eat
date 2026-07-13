@@ -362,6 +362,9 @@
             margin-bottom: 8px;
             padding-bottom: 6px;
             border-bottom: 1px dashed var(--border);
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .category-name {
@@ -371,6 +374,28 @@
             display: flex;
             align-items: center;
             gap: 4px;
+        }
+
+        .category-arrow {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            transition: transform 0.25s ease;
+            display: inline-block;
+            margin-left: 2px;
+        }
+
+        .category-arrow.expanded {
+            transform: rotate(90deg);
+        }
+
+        .category-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .category-body.expanded {
+            max-height: 1000px;
         }
 
         .category-count {
@@ -1145,14 +1170,19 @@
                 const header = document.createElement('div');
                 header.className = 'category-header';
                 header.innerHTML = `
-                    <div class="category-name">${emoji} ${category} <span class="category-count">(${items.length})</span></div>
-                    <button class="category-add-btn" onclick="showInlineAdd('${category}')">+ 添加</button>
+                    <div class="category-name">${emoji} ${category} <span class="category-count">(${items.length})</span><span class="category-arrow">›</span></div>
+                    <button class="category-add-btn" onclick="event.stopPropagation(); showInlineAdd('${category}')">+ 添加</button>
                 `;
+                header.addEventListener('click', () => toggleCategory(category));
                 group.appendChild(header);
 
+                // 折叠体（默认收起）
+                const body = document.createElement('div');
+                body.className = 'category-body';
+                body.id = 'catBody_' + category;
+
                 const chipGrid = document.createElement('div');
-                chipGrid.className = 'food-grid';
-                chipGrid.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;';
+                chipGrid.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;';
                 chipGrid.id = 'chipGrid_' + category;
 
                 items.forEach(f => {
@@ -1168,18 +1198,37 @@
                     chipGrid.appendChild(chip);
                 });
 
-                group.appendChild(chipGrid);
+                body.appendChild(chipGrid);
+                group.appendChild(body);
                 foodList.appendChild(group);
             });
         }
 
+        // 折叠/展开分类
+        window.toggleCategory = function(category) {
+            const body = document.getElementById('catBody_' + category);
+            const group = document.getElementById('catGroup_' + category);
+            const arrow = group.querySelector('.category-arrow');
+            const isExpanded = body.classList.contains('expanded');
+            body.classList.toggle('expanded');
+            arrow.classList.toggle('expanded');
+        };
+
         // 显示内联添加行
         window.showInlineAdd = function(category) {
+            // 先展开分类
+            const body = document.getElementById('catBody_' + category);
+            const group = document.getElementById('catGroup_' + category);
+            const arrow = group.querySelector('.category-arrow');
+            if (!body.classList.contains('expanded')) {
+                body.classList.add('expanded');
+                arrow.classList.add('expanded');
+            }
+
             // 如果已有添加行就先移除
             const existing = document.getElementById('inlineAdd_' + category);
             if (existing) { existing.remove(); return; }
 
-            const group = document.getElementById('catGroup_' + category);
             const addRow = document.createElement('div');
             addRow.className = 'inline-add-row';
             addRow.id = 'inlineAdd_' + category;
