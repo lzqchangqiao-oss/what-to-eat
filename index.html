@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>今天吃什么</title>
+    <title>吃了么</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
@@ -807,7 +807,7 @@
     <div class="app">
         <!-- 顶部导航栏 -->
         <div class="nav-bar">
-            <div class="nav-title" id="navTitle">今天吃什么</div>
+            <div class="nav-title" id="navTitle">吃了么</div>
         </div>
 
         <!-- 内容区 -->
@@ -1021,7 +1021,7 @@
                 document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
                 document.getElementById('page' + (target === 'choose' ? 'Choose' : 'Mine')).classList.add('active');
 
-                navTitle.textContent = target === 'choose' ? '今天吃什么' : '我的';
+                navTitle.textContent = target === 'choose' ? '吃了么' : '我的';
 
                 if (target === 'mine') {
                     updateStats();
