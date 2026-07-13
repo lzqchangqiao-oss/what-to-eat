@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今天吃什么？</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B35;
+            --primary-dark: #E85A2D;
+            --secondary: #FFB627;
+            --bg: #FFF8F0;
+            --card-bg: #ffffff;
+            --text: #2D3436;
+            --text-light: #636E72;
+            --border: #FFE5D9;
+            --success: #00B894;
+            --shadow: 0 8px 32px rgba(255, 107, 53, 0.15);
+            --shadow-hover: 0 12px 40px rgba(255, 107, 53, 0.25);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 头部 */
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: var(--primary);
+            text-shadow: 2px 2px 0px var(--border);
+            margin-bottom: 8px;
+            animation: bounce 2s ease infinite;
+        }
+
+        .header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* 主抽取区 */
+        .draw-section {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 40px 30px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .draw-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .food-display {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--primary);
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            transition: all 0.1s;
+            text-shadow: 2px 2px 0px var(--border);
+        }
+
+        .food-display.spinning {
+            color: var(--secondary);
+            transform: scale(1.05);
+        }
+
+        .food-display.result {
+            animation: popIn 0.5s ease;
+            color: var(--primary);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .draw-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 18px 60px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+            transition: all 0.3s;
+            font-family: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .draw-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.5);
+        }
+
+        .draw-btn:active {
+            transform: translateY(0);
+        }
+
+        .draw-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .draw-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to right,
+                transparent 0%,
+                rgba(255,255,255,0.3) 50%,
+                transparent 100%
+            );
+            transform: rotate(30deg);
+            transition: all 0.6s;
+        }
+
+        .draw-btn:hover::after {
+            left: 100%;
+        }
+
+        /* 分类标签 */
+        .categories {
+            margin: 20px 0;
+        }
+
+        .category-title {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 12px;
+        }
+
+        .category-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .tag {
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid var(--border);
+            background: white;
+            color: var(--text);
+            font-family: inherit;
+        }
+
+        .tag:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .tag.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* 热量区间筛选 */
+        .calorie-filter {
+            margin-top: 18px;
+            text-align: center;
+        }
+
+        .calorie-range-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .cal-range-tag {
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid var(--border);
+            background: white;
+            color: var(--text);
+            font-family: inherit;
+            font-weight: 700;
+        }
+
+        .cal-range-tag:hover {
+            border-color: var(--primary);
+        }
+
+        .cal-range-tag.active-low {
+            background: #00B894;
+            color: white;
+            border-color: #00B894;
+        }
+
+        .cal-range-tag.active-medium {
+            background: #F39C12;
+            color: white;
+            border-color: #F39C12;
+        }
+
+        .cal-range-tag.active-high {
+            background: #FF6B35;
+            color: white;
+            border-color: #FF6B35;
+        }
+
+        .cal-range-tag.active-very-high {
+            background: #D63031;
+            color: white;
+            border-color: #D63031;
+        }
+
+        .cal-range-tag.active-all {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* 食物列表管理 */
+        .manage-section {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title span {
+            font-size: 1.5rem;
+        }
+
+        .add-food {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .add-food input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            font-size: 1rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .add-food input:focus {
+            border-color: var(--primary);
+        }
+
+        .add-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .add-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .food-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .food-item {
+            background: var(--bg);
+            padding: 10px 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .food-item .remove {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .food-item .remove:hover {
+            background: #FF7675;
+            color: white;
+        }
+
+        /* 历史记录 */
+        .history-section {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-food {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .history-time {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .clear-history {
+            background: none;
+            border: 2px solid var(--border);
+            color: var(--text-light);
+            padding: 10px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 16px;
+            transition: all 0.3s;
+        }
+
+        .clear-history:hover {
+            border-color: #FF7675;
+            color: #FF7675;
+        }
+
+        /* 装饰元素 */
+        .floating-icons {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .floating-icon {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.08;
+            animation: float 15s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(10deg); }
+        }
+
+        /* 结果弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 30px;
+            padding: 50px 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.8);
+            transition: all 0.3s;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .modal-overlay.show .modal {
+            transform: scale(1);
+        }
+
+        .modal-emoji {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .modal-food {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 20px 0;
+        }
+
+        .modal-calorie {
+            margin: 16px 0 24px;
+        }
+
+        .modal-calorie-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .calorie-bar-container {
+            width: 100%;
+            background: var(--bg);
+            border-radius: 12px;
+            height: 28px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border);
+        }
+
+        .calorie-bar {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.8s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: white;
+            min-width: 60px;
+        }
+
+        .calorie-bar.low {
+            background: linear-gradient(90deg, #00B894, #55EFC4);
+        }
+
+        .calorie-bar.medium {
+            background: linear-gradient(90deg, #FDCB6E, #F39C12);
+        }
+
+        .calorie-bar.high {
+            background: linear-gradient(90deg, #E17055, #FF6B35);
+        }
+
+        .calorie-bar.very-high {
+            background: linear-gradient(90deg, #D63031, #FF7675);
+        }
+
+        .calorie-desc {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .calorie-desc.low { color: #00B894; }
+        .calorie-desc.medium { color: #F39C12; }
+        .calorie-desc.high { color: #FF6B35; }
+        .calorie-desc.very-high { color: #D63031; }
+
+        .food-display-calorie {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        .calorie-badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .calorie-badge.low { background: #E8F8F5; color: #00B894; }
+        .calorie-badge.medium { background: #FEF5E7; color: #F39C12; }
+        .calorie-badge.high { background: #FDEDEC; color: #FF6B35; }
+        .calorie-badge.very-high { background: #FDEDEC; color: #D63031; }
+
+        .modal-close {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 20px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .header h1 { font-size: 2rem; }
+            .food-display { font-size: 2.5rem; min-height: 80px; }
+            .draw-btn { padding: 16px 40px; font-size: 1.2rem; }
+            .draw-section { padding: 30px 20px; }
+            .add-food { flex-wrap: wrap; }
+            .add-food input[type="number"] { width: 100%; }
+            .modal { padding: 40px 24px; }
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- 浮动装饰 -->
+    <div class="floating-icons" id="floatingIcons"></div>
+
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>今天吃什么？</h1>
+            <p>选择困难症患者的救星</p>
+        </div>
+
+        <!-- 主抽取区 -->
+        <div class="draw-section">
+            <div class="category-title">选择分类（可多选）</div>
+            <div class="category-tags" id="categoryTags">
+                <button class="tag active" data-category="炒菜">炒菜</button>
+                <button class="tag active" data-category="烧腊">烧腊</button>
+                <button class="tag active" data-category="猪脚饭">猪脚饭</button>
+                <button class="tag active" data-category="粉面">粉面</button>
+                <button class="tag active" data-category="粥">粥</button>
+                <button class="tag active" data-category="快餐">快餐</button>
+                <button class="tag active" data-category="小吃">小吃</button>
+                <button class="tag active" data-category="火锅">火锅</button>
+            </div>
+
+            <div class="food-display" id="foodDisplay">点击按钮开始抽取</div>
+            <div class="food-display-calorie" id="foodDisplayCalorie"></div>
+
+            <div class="calorie-filter">
+                <div class="category-title">筛选热量区间（可多选）</div>
+                <div class="calorie-range-tags" id="calRangeTags">
+                    <button class="cal-range-tag active-all" data-range="all">不限</button>
+                    <button class="cal-range-tag" data-range="low">0-250 kcal</button>
+                    <button class="cal-range-tag" data-range="medium">251-500 kcal</button>
+                    <button class="cal-range-tag" data-range="high">501-750 kcal</button>
+                    <button class="cal-range-tag" data-range="very-high">750+ kcal</button>
+                </div>
+            </div>
+
+            <button class="draw-btn" id="drawBtn">开始抽取</button>
+        </div>
+
+        <!-- 食物管理 -->
+        <div class="manage-section">
+            <div class="section-title"><span>🍽️</span> 管理食物列表</div>
+            <div class="add-food">
+                <input type="text" id="newFoodInput" placeholder="输入食物名称，如：宫保鸡丁" maxlength="20">
+                <input type="number" id="newFoodCalorie" placeholder="热量(kcal)" min="0" max="3000" style="width:120px;padding:14px 12px;border:2px solid var(--border);border-radius:16px;font-size:1rem;font-family:inherit;outline:none;transition:border-color 0.3s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+                <select id="newFoodCategory" style="padding:14px 16px;border:2px solid var(--border);border-radius:16px;font-family:inherit;outline:none;background:white;">
+                    <option value="炒菜">炒菜</option>
+                    <option value="烧腊">烧腊</option>
+                    <option value="猪脚饭">猪脚饭</option>
+                    <option value="粉面">粉面</option>
+                    <option value="粥">粥</option>
+                    <option value="快餐">快餐</option>
+                    <option value="小吃">小吃</option>
+                    <option value="火锅">火锅</option>
+                </select>
+                <button class="add-btn" id="addBtn">添加</button>
+            </div>
+            <div class="food-list" id="foodList"></div>
+        </div>
+
+        <!-- 历史记录 -->
+        <div class="history-section">
+            <div class="section-title"><span>📜</span> 抽取历史</div>
+            <div class="history-list" id="historyList"></div>
+            <button class="clear-history" id="clearHistory">清空历史</button>
+        </div>
+    </div>
+
+    <!-- 结果弹窗 -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-emoji">🎉</div>
+            <div class="modal-title">今天推荐你吃</div>
+            <div class="modal-food" id="modalFood"></div>
+            <div class="modal-calorie" id="modalCalorie">
+                <div class="modal-calorie-label">预估热量（每份）</div>
+                <div class="calorie-bar-container">
+                    <div class="calorie-bar" id="modalCalorieBar" style="width:0%"></div>
+                </div>
+                <div class="calorie-desc" id="modalCalorieDesc"></div>
+            </div>
+            <button class="modal-close" id="modalClose">确定</button>
+        </div>
+    </div>
+
+    <script>
+        // 默认食物数据（含预估热量 kcal/份）
+        const defaultFoods = {
+            '炒菜': [
+                { name: '宫保鸡丁', cal: 320 }, { name: '鱼香肉丝', cal: 280 },
+                { name: '麻婆豆腐', cal: 220 }, { name: '回锅肉', cal: 380 },
+                { name: '糖醋里脊', cal: 350 }, { name: '青椒肉丝', cal: 250 },
+                { name: '番茄炒蛋', cal: 180 }, { name: '酸辣土豆丝', cal: 150 },
+                { name: '蒜蓉西兰花', cal: 120 }, { name: '干煸豆角', cal: 200 }
+            ],
+            '烧腊': [
+                { name: '烧鸭饭', cal: 650 }, { name: '叉烧饭', cal: 580 },
+                { name: '烧鹅饭', cal: 720 }, { name: '脆皮烧肉', cal: 450 },
+                { name: '蜜汁鸡翅', cal: 280 }, { name: '卤水拼盘', cal: 400 },
+                { name: '烧腊双拼', cal: 680 }, { name: '玫瑰油鸡', cal: 350 }
+            ],
+            '猪脚饭': [
+                { name: '隆江猪脚饭', cal: 750 }, { name: '卤猪蹄饭', cal: 700 },
+                { name: '红烧猪脚', cal: 680 }, { name: '酱香猪脚', cal: 720 },
+                { name: '猪脚拼烧鸭', cal: 850 }
+            ],
+            '粉面': [
+                { name: '兰州拉面', cal: 520 }, { name: '重庆小面', cal: 450 },
+                { name: '螺蛳粉', cal: 480 }, { name: '桂林米粉', cal: 420 },
+                { name: '酸辣粉', cal: 400 }, { name: '牛肉面', cal: 550 },
+                { name: '炸酱面', cal: 500 }, { name: '云吞面', cal: 380 },
+                { name: '热干面', cal: 460 }, { name: '刀削面', cal: 530 }
+            ],
+            '粥': [
+                { name: '皮蛋瘦肉粥', cal: 220 }, { name: '海鲜粥', cal: 280 },
+                { name: '白粥配咸菜', cal: 150 }, { name: '南瓜粥', cal: 130 },
+                { name: '八宝粥', cal: 200 }, { name: '小米粥', cal: 110 },
+                { name: '及第粥', cal: 250 }
+            ],
+            '快餐': [
+                { name: '汉堡套餐', cal: 850 }, { name: '炸鸡', cal: 400 },
+                { name: '披萨', cal: 680 }, { name: '寿司', cal: 350 },
+                { name: '三明治', cal: 320 }, { name: '盖浇饭', cal: 650 },
+                { name: '木桶饭', cal: 700 }
+            ],
+            '小吃': [
+                { name: '煎饼果子', cal: 350 }, { name: '肉夹馍', cal: 380 },
+                { name: '烤冷面', cal: 300 }, { name: '关东煮', cal: 250 },
+                { name: '串串香', cal: 450 }, { name: '烧烤', cal: 550 },
+                { name: '臭豆腐', cal: 220 }, { name: '凉皮', cal: 180 }
+            ],
+            '火锅': [
+                { name: '重庆火锅', cal: 900 }, { name: '潮汕牛肉火锅', cal: 750 },
+                { name: '老北京涮羊肉', cal: 800 }, { name: '椰子鸡', cal: 600 },
+                { name: '猪肚鸡', cal: 650 }, { name: '麻辣烫', cal: 550 }
+            ]
+        };
+
+        // 热量等级
+        function getCalorieLevel(cal) {
+            if (cal <= 250) return { level: 'low', label: '轻盈低卡', desc: '适合控制体重' };
+            if (cal <= 500) return { level: 'medium', label: '适中均衡', desc: '日常正餐水平' };
+            if (cal <= 750) return { level: 'high', label: '热量较高', desc: '注意适量食用' };
+            return { level: 'very-high', label: '热量爆表', desc: '偶尔放纵一下' };
+        }
+
+        // 状态
+        let foods = JSON.parse(JSON.stringify(defaultFoods));
+        let history = JSON.parse(localStorage.getItem('foodHistory') || '[]');
+        let activeCategories = new Set(Object.keys(foods));
+        let activeCalRanges = new Set(['all']); // 'all' | 'low' | 'medium' | 'high' | 'very-high'
+        let isSpinning = false;
+
+        // DOM 元素
+        const foodDisplay = document.getElementById('foodDisplay');
+        const foodDisplayCalorie = document.getElementById('foodDisplayCalorie');
+        const drawBtn = document.getElementById('drawBtn');
+        const foodList = document.getElementById('foodList');
+        const newFoodInput = document.getElementById('newFoodInput');
+        const newFoodCalorie = document.getElementById('newFoodCalorie');
+        const newFoodCategory = document.getElementById('newFoodCategory');
+        const addBtn = document.getElementById('addBtn');
+        const historyList = document.getElementById('historyList');
+        const clearHistory = document.getElementById('clearHistory');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalFood = document.getElementById('modalFood');
+        const modalCalorieBar = document.getElementById('modalCalorieBar');
+        const modalCalorieDesc = document.getElementById('modalCalorieDesc');
+        const modalClose = document.getElementById('modalClose');
+
+        // 初始化
+        function init() {
+            renderCategoryTags();
+            renderCalRangeTags();
+            renderFoodList();
+            renderHistory();
+            createFloatingIcons();
+        }
+
+        // 渲染分类标签
+        function renderCategoryTags() {
+            document.querySelectorAll('#categoryTags .tag').forEach(tag => {
+                tag.addEventListener('click', () => {
+                    const cat = tag.dataset.category;
+                    if (activeCategories.has(cat)) {
+                        activeCategories.delete(cat);
+                        tag.classList.remove('active');
+                    } else {
+                        activeCategories.add(cat);
+                        tag.classList.add('active');
+                    }
+                });
+            });
+        }
+
+        // 渲染热量区间标签
+        function renderCalRangeTags() {
+            document.querySelectorAll('#calRangeTags .cal-range-tag').forEach(tag => {
+                tag.addEventListener('click', () => {
+                    const range = tag.dataset.range;
+                    // 清除所有 active 样式
+                    document.querySelectorAll('#calRangeTags .cal-range-tag').forEach(t => {
+                        t.className = 'cal-range-tag';
+                    });
+                    if (range === 'all') {
+                        activeCalRanges.clear();
+                        activeCalRanges.add('all');
+                        tag.classList.add('active-all');
+                    } else {
+                        // 切掉 all
+                        activeCalRanges.delete('all');
+                        if (activeCalRanges.has(range)) {
+                            activeCalRanges.delete(range);
+                        } else {
+                            activeCalRanges.add(range);
+                        }
+                        // 如果全清空了，恢复 all
+                        if (activeCalRanges.size === 0) {
+                            activeCalRanges.add('all');
+                        }
+                        // 设置样式
+                        document.querySelectorAll('#calRangeTags .cal-range-tag').forEach(t => {
+                            const r = t.dataset.range;
+                            if (activeCalRanges.has(r)) {
+                                t.classList.add('active-' + r);
+                            }
+                        });
+                    }
+                });
+            });
+        }
+
+        // 判断食物是否符合热量筛选
+        function matchesCalRange(cal) {
+            if (activeCalRanges.has('all')) return true;
+            const level = getCalorieLevel(cal).level;
+            return activeCalRanges.has(level);
+        }
+
+        // 渲染食物列表
+        function renderFoodList() {
+            foodList.innerHTML = '';
+            Object.entries(foods).forEach(([category, items]) => {
+                items.forEach(food => {
+                    const info = typeof food === 'object' ? food : { name: food, cal: 0 };
+                    const cl = getCalorieLevel(info.cal);
+                    const item = document.createElement('div');
+                    item.className = 'food-item';
+                    item.innerHTML = `
+                        <span>${info.name}</span>
+                        <span class="calorie-badge ${cl.level}">${info.cal} kcal</span>
+                        <span style="color:var(--text-light);font-size:0.8rem;">${category}</span>
+                        <button class="remove" onclick="removeFood('${category}', '${info.name}')">&times;</button>
+                    `;
+                    foodList.appendChild(item);
+                });
+            });
+        }
+
+        // 渲染历史
+        function renderHistory() {
+            historyList.innerHTML = '';
+            if (history.length === 0) {
+                historyList.innerHTML = '<div style="color:var(--text-light);text-align:center;padding:20px;">暂无记录</div>';
+                return;
+            }
+            [...history].reverse().forEach(h => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                const calInfo = h.cal ? `<span class="calorie-badge ${getCalorieLevel(h.cal).level}" style="margin-left:8px;">${h.cal} kcal</span>` : '';
+                item.innerHTML = `
+                    <div><span class="history-food">${h.food}</span>${calInfo}</div>
+                    <span class="history-time">${h.time}</span>
+                `;
+                historyList.appendChild(item);
+            });
+        }
+
+        // 抽取逻辑
+        function draw() {
+            if (isSpinning) return;
+            if (activeCategories.size === 0) {
+                alert('请至少选择一个分类！');
+                return;
+            }
+
+            const availableFoods = [];
+            activeCategories.forEach(cat => {
+                if (foods[cat]) {
+                    foods[cat].forEach(f => {
+                        const foodObj = typeof f === 'object' ? f : { name: f, cal: 0 };
+                        if (matchesCalRange(foodObj.cal)) {
+                            availableFoods.push(foodObj);
+                        }
+                    });
+                }
+            });
+
+            if (availableFoods.length === 0) {
+                alert('所选分类下没有食物，请添加或选择其他分类！');
+                return;
+            }
+
+            isSpinning = true;
+            drawBtn.disabled = true;
+            drawBtn.textContent = '抽取中...';
+            foodDisplay.classList.add('spinning');
+            foodDisplayCalorie.textContent = '';
+
+            let count = 0;
+            const maxCount = 25;
+            const interval = setInterval(() => {
+                const randomFood = availableFoods[Math.floor(Math.random() * availableFoods.length)];
+                foodDisplay.textContent = randomFood.name;
+                count++;
+
+                if (count >= maxCount) {
+                    clearInterval(interval);
+                    finalizeDraw(randomFood);
+                }
+            }, 80);
+        }
+
+        // 完成抽取
+        function finalizeDraw(foodObj) {
+            isSpinning = false;
+            drawBtn.disabled = false;
+            drawBtn.textContent = '再次抽取';
+            foodDisplay.classList.remove('spinning');
+            foodDisplay.classList.add('result');
+            setTimeout(() => foodDisplay.classList.remove('result'), 500);
+
+            // 显示热量
+            const cl = getCalorieLevel(foodObj.cal);
+            foodDisplayCalorie.textContent = `约 ${foodObj.cal} kcal · ${cl.label}`;
+
+            // 添加到历史
+            const now = new Date();
+            const timeStr = `${now.getMonth()+1}月${now.getDate()}日 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            history.push({ food: foodObj.name, cal: foodObj.cal, time: timeStr });
+            if (history.length > 50) history.shift();
+            localStorage.setItem('foodHistory', JSON.stringify(history));
+            renderHistory();
+
+            // 显示弹窗
+            modalFood.textContent = foodObj.name;
+            const pct = Math.min(Math.max(foodObj.cal / 10, 8), 100);
+            modalCalorieBar.style.width = '0%';
+            modalCalorieBar.className = 'calorie-bar ' + cl.level;
+            modalCalorieBar.textContent = foodObj.cal + ' kcal';
+            modalCalorieDesc.className = 'calorie-desc ' + cl.level;
+            modalCalorieDesc.textContent = cl.label + ' · ' + cl.desc;
+            modalOverlay.classList.add('show');
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    modalCalorieBar.style.width = pct + '%';
+                });
+            });
+        }
+
+        // 添加食物
+        function addFood() {
+            const name = newFoodInput.value.trim();
+            const cal = parseInt(newFoodCalorie.value) || 0;
+            const category = newFoodCategory.value;
+            if (!name) return;
+
+            if (!foods[category]) foods[category] = [];
+            if (foods[category].some(f => (typeof f === 'object' ? f.name : f) === name)) {
+                alert('该食物已存在！');
+                return;
+            }
+
+            foods[category].push({ name, cal });
+            newFoodInput.value = '';
+            newFoodCalorie.value = '';
+            renderFoodList();
+        }
+
+        // 删除食物
+        window.removeFood = function(category, foodName) {
+            foods[category] = foods[category].filter(f => (typeof f === 'object' ? f.name : f) !== foodName);
+            if (foods[category].length === 0) delete foods[category];
+            renderFoodList();
+        };
+
+        // 清空历史
+        function clearAllHistory() {
+            history = [];
+            localStorage.removeItem('foodHistory');
+            renderHistory();
+        }
+
+        // 浮动装饰
+        function createFloatingIcons() {
+            const icons = ['🍜', '🍱', '🍛', '🍝', '🍲', '🍗', '🥟', '🍚', '🥘', '🍤'];
+            const container = document.getElementById('floatingIcons');
+            for (let i = 0; i < 15; i++) {
+                const el = document.createElement('div');
+                el.className = 'floating-icon';
+                el.textContent = icons[Math.floor(Math.random() * icons.length)];
+                el.style.left = Math.random() * 100 + '%';
+                el.style.top = Math.random() * 100 + '%';
+                el.style.animationDelay = Math.random() * 15 + 's';
+                el.style.animationDuration = (10 + Math.random() * 10) + 's';
+                container.appendChild(el);
+            }
+        }
+
+        // 事件监听
+        drawBtn.addEventListener('click', draw);
+        addBtn.addEventListener('click', addFood);
+        newFoodInput.addEventListener('keypress', e => { if (e.key === 'Enter') addFood(); });
+        clearHistory.addEventListener('click', clearAllHistory);
+        modalClose.addEventListener('click', () => modalOverlay.classList.remove('show'));
+        modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) modalOverlay.classList.remove('show'); });
+
+        // 启动
+        init();
+    </script>
+</body>
+</html>
